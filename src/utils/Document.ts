@@ -1,6 +1,7 @@
 // import * as yamlFront from "yaml-front-matter";
-import { Base64 } from "js-base64";
 import LarkClient from './LarkClient';
+const { v4: uuidv4 } = require('uuid');
+
 
 export interface DocumentConfig {
   originFile: string,
@@ -48,25 +49,20 @@ export default class Document {
 
     this.title = this.title.trim();
     this.body = body;
-    this.body = this.body + this.signature();
+    this.body = this.body;
 
     this.loadConfig();
 
     return this;
   }
 
-  signature() {
-    return '\n\n---\n <sub>本文档由 chick26创建</sub>';
-  }
-
   loadConfig() {
-    this.slug = Base64.encode(this.title + '.md')
-      .toLowerCase()
-      .replace(/\s/g, '-');
+	//slug 只包含字母、数字和连字符，如果使用base64生成，可能出现补位的=号，从而错误
+    this.slug = uuidv4();
   }
 
-  dump() {
-    this.createDoc();
+  async dump() {
+    await this.createDoc();
     return {
       originFile: this.raw,
       slug: this.slug,

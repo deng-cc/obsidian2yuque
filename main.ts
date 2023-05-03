@@ -30,17 +30,25 @@ class UploadModal extends Modal {
 		const { contentEl } = this;
 
 		contentEl.createEl("h1", { text: "Upload Config" });
+		const noteFile = this.app.workspace.getActiveFile();
+		if(!noteFile) return;
+		const defaultTitle = noteFile.basename.replace('.md', '');
+
+		this.fileName = defaultTitle;
+		this.uploadingSettings.title = defaultTitle;
 
 		new Setting(contentEl)
-			.setName("Name")
+			.setName("Title")
 			.addText((text) =>
-				text.onChange((value) => {
-					this.fileName = value
-					this.uploadingSettings.title = value;
-				}));
+				text.setValue(defaultTitle)
+					.onChange((value) => {
+						this.fileName = value
+						this.uploadingSettings.title = value;
+					})
+			);
 
 		new Setting(contentEl)
-			.setName("New List")
+			.setName("Repo List")
 			.setClass('obsidian-lark-upload-list')
 			.addDropdown(async (dropdown) => {
 				try {
@@ -70,11 +78,9 @@ class UploadModal extends Modal {
 					.setButtonText("Submit")
 					.setCta()
 					.onClick( async () => {
-						const noteFile = this.app.workspace.getActiveFile();
-						if(!noteFile) return; 
 						const text = await this.app.vault.read(noteFile);
 						const doc = new Document(this.client, text, this.fileName);
-						this.onUploadFile(doc.dump());
+						await this.onUploadFile(await doc.dump());
 					}));
 	}
 
@@ -94,9 +100,12 @@ class UploadModal extends Modal {
 		try {
 			const res = await this.client.uploadFile(namespace, uploadParams)
 			if(res.status === 200) {
-				console.log('upload success', res.data);
+				console.log('upload success', res);
 				this.close();
 				new Notice('Upload Success');
+			} else {
+				console.log('upload error', res);
+				new Notice('!Error' + res?.data.message);
 			}
 		} catch (e) {
 			console.log('upload error', e);

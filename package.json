@@ -27,6 +27,7 @@
 		"@types/node-fetch": "^2.6.2",
 		"js-base64": "^3.7.2",
 		"js-yaml": "^4.1.0",
+		"uuid": "^9.0.0",
 		"yaml-front-matter": "^4.1.1"
 	}
 }
